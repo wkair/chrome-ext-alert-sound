@@ -1,19 +1,31 @@
-const audio = new Audio(chrome.runtime.getURL('alert-sound.mp3'));
+console.log("Content script loaded");
 
-window.addEventListener('message', (event) => {
-    if (event.source !== window) return;
-    if (event.data.action === 'playSound') {
-        console.log('play message received');
-        chrome.storage.local.get(['soundEnabled', 'whitelistEnabled', 'whitelist'], ({ soundEnabled, whitelistEnabled, whitelist }) => {
-            const currentSite = window.location.hostname;
-            const isWhitelisted = whitelist && whitelist.some(site => currentSite.startsWith(site));
-            if (soundEnabled === true && (!whitelistEnabled || isWhitelisted)) {
-                audio.play().then(() => {
-                    window.postMessage({ action: 'soundPlayed' }, '*');
-                });
-            } else {
-                window.postMessage({ action: 'soundPlayed' }, '*');
-            }
-        });
+const audioURL = chrome.runtime.getURL("alert-sound.mp3");
+
+function updatePlayEnabled() {
+  chrome.storage.local.get(
+    ["soundEnabled", "whitelistEnabled", "whitelist"],
+    (data) => {
+      const whitelist = data.whitelist || [];
+      const isWhitelisted = whitelist.includes(window.location.hostname);
+      const isPlayEnabled =
+        data.soundEnabled === true && (!data.whitelistEnabled || isWhitelisted);
+      window.postMessage({ type: "updateIsPlayEnabled", isPlayEnabled }, "*");
     }
+  );
+}
+
+function init() {
+  console.log("init");
+  updatePlayEnabled();
+  window.postMessage({ type: "setAudioURL", audioURL }, "*");
+}
+
+chrome.storage.onChanged.addListener((changes, namespace) => {
+  if (namespace === "local") {
+    console.log("Storage changed", changes);
+    updatePlayEnabled();
+  }
 });
+
+init();

@@ -1,40 +1,38 @@
+console.log("override script loaded");
+
 const originalAlert = window.alert;
 const originalConfirm = window.confirm;
 const originalPrompt = window.prompt;
 
-const audio = new Audio();
+const alertSoundAudio = new Audio();
+let isPlayEnabled = false;
 
-function playSound() {
-    console.log('play sound', audio);
-    if (audio.src) {
-        audio.play();
+function playAudio() {
+    if (isPlayEnabled && alertSoundAudio.src) {
+        alertSoundAudio.play().catch(error => console.error('Audio play failed:', error));
     }
 }
 
-function sendMessageToContent(action) {
-    return new Promise((resolve) => {
-        window.postMessage({ action: action }, '*');
-        window.addEventListener('message', function handler(event) {
-            if (event.source !== window) return;
-            if (event.data.action === 'soundPlayed') {
-                window.removeEventListener('message', handler);
-                resolve();
-            }
-        });
-    });
-}
+window.alert = function (msg) {
+    playAudio();
+    return originalAlert(msg);
+};
 
-window.alert = async function (msg) {
-    playSound();
-    return originalAlert(msg); // 원래 함수 실행 후 리턴값 반환
-}
+window.confirm = function (msg) {
+    playAudio();
+    return originalConfirm(msg);
+};
 
-window.confirm = async function (msg) {
-    playSound();
-    return originalConfirm(msg); // 원래 함수 실행 후 리턴값 반환
-}
+window.prompt = function (msg, value) {
+    playAudio();
+    return originalPrompt(msg, value);
+};
 
-window.prompt = async function (msg, value) {
-    playSound();
-    return originalPrompt(msg, value); // 원래 함수 실행 후 리턴값 반환
-}
+window.addEventListener("message", (event) => {
+  if (event.data.type === "setAudioURL") {
+    alertSoundAudio.src = event.data.audioURL;
+  }
+  if (event.data.type === "updateIsPlayEnabled") {
+    isPlayEnabled = event.data.isPlayEnabled;
+  }
+});
