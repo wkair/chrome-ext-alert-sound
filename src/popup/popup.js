@@ -1,9 +1,15 @@
+let currentDomain = "";
+
 document.addEventListener("DOMContentLoaded", () => {
   const soundToggle = document.getElementById("soundToggle");
   const whitelistToggle = document.getElementById("whitelistToggle");
   const whitelistInput = document.getElementById("whitelistInput");
   const addWhitelistButton = document.getElementById("addWhitelist");
   const whitelistElement = document.getElementById("whitelist");
+
+  chrome.tabs.query({ active: true, currentWindow: true }, function (tabs) {
+    currentDomain = extractDomain(tabs[0].url);
+  });
 
   // Initialize the checkbox state
   chrome.storage.local.get(
@@ -14,8 +20,12 @@ document.addEventListener("DOMContentLoaded", () => {
       whitelistToggle.disabled = !data.soundEnabled; // Disable whitelistToggle if soundToggle is false
       const whitelist = data.whitelist || [];
       whitelist.forEach((site) => {
-        addWhitelistElement(site);
+        addWhitelistElement(site, site === currentDomain);
       });
+
+      if (!whitelist.includes(currentDomain)) {
+        whitelistInput.value = currentDomain;
+      }
     }
   );
 
@@ -43,19 +53,12 @@ document.addEventListener("DOMContentLoaded", () => {
         if (!whitelist.includes(site)) {
           whitelist.push(site);
           chrome.storage.local.set({ whitelist: whitelist }, () => {
-            addWhitelistElement(site);
+            addWhitelistElement(site, site === currentDomain);
             whitelistInput.value = "";
           });
         }
       });
     }
-  });
-
-  // Set current tab URL to whitelist input on load
-  chrome.tabs.query({ active: true, currentWindow: true }, function (tabs) {
-    document.getElementById("whitelistInput").value = extractDomain(
-      tabs[0].url
-    );
   });
 });
 
@@ -76,10 +79,13 @@ function extractDomain(url) {
 }
 
 // Function to add a site to the whitelist element
-function addWhitelistElement(site) {
+function addWhitelistElement(site, isCurrentSite = false) {
   const whitelistElement = document.getElementById("whitelist");
   const li = document.createElement("li");
   li.textContent = site;
+  if (isCurrentSite) {
+    li.style.backgroundColor = "#d4edda"; // Highlight current site
+  }
   const deleteButton = document.createElement("button");
   deleteButton.className = "delete";
   deleteButton.style.marginLeft = "10px";
