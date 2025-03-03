@@ -1,0 +1,36 @@
+{
+  "manifest_version": 3,
+  "name": "Alert Sound Notifier",
+  "version": "1.0",
+  "description": "Plays a sound when alert, confirm, or prompt dialogs are triggered on a webpage.",
+  "permissions": ["activeTab", "scripting", "tabs", "storage"],
+  "host_permissions": ["<all_urls>"],
+  "background": {
+    "service_worker": "src/background.js"
+  },
+  "content_scripts": [
+    {
+      "matches": ["<all_urls>"],
+      "js": ["src/content.js"]
+    }
+  ],
+  "action": {
+    "default_popup": "src/popup/popup.html",
+    "default_icon": {
+      "16": "icon16.png",
+      "48": "icon48.png",
+      "128": "icon128.png"
+    }
+  },
+  "icons": {
+    "16": "icon16.png",
+    "48": "icon48.png",
+    "128": "icon128.png"
+  },
+  "web_accessible_resources": [
+    {
+      "resources": ["alert-sound.mp3"],
+      "matches": ["<all_urls>"]
+    }
+  ]
+}
