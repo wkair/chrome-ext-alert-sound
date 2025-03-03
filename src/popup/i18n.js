@@ -7,7 +7,9 @@ const translations = {
     soundToggle: "Play alert sound",
     whitelistToggle: "Only for sites in the list",
     addButton: "Add",
-    language: "Language"
+    language: "Language",
+    testPage: "Test Page",
+    whitelistTitle: "Allowed Sites List"
   },
   ko: {
     title: "대화상자 알림 소리",
@@ -17,7 +19,9 @@ const translations = {
     soundToggle: "알림 소리 재생",
     whitelistToggle: "목록에 있는 사이트만",
     addButton: "추가",
-    language: "언어"
+    language: "언어",
+    testPage: "테스트 페이지",
+    whitelistTitle: "허용 사이트 목록"
   }
 };
 
